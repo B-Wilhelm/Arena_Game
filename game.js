@@ -5,6 +5,7 @@ var gID;
 var isRunning = true;
 var game = 0;
 var keyState = {};
+var NUM_SLOTS = 20
 
 function init() {
 	ctx = document.getElementById("canvas").getContext('2d');
@@ -25,11 +26,6 @@ function draw() {
 	else if(game === 1) {	// Game screen
 		update();
 		clear();
-		drawCard(card.x, card.y);
-		drawEnemies();
-		drawLasers();
-		drawSurvivalLine();
-		drawText("Enemy Count: " + enemyCount, 50, 35);
 		gID = window.requestAnimationFrame(draw);
 	}
 	else if(game === 2) {	// Failure screen
@@ -42,66 +38,25 @@ function draw() {
 	}
 }
 
-function drawCard(x, y) {	// Coordinates are pointing to the rear-middle of cards
-	ctx.lineWidth = 5;
-	ctx.strokeStyle = 'blue';
-	ctx.fillStyle = 'blue';
-	this.x = Math.floor(x);
-	this.y = Math.floor(y);
-	cardWidth = Math.floor(card.width);
-	
-	ctx.beginPath();
-	ctx.moveTo(this.x-cardWidth/3, this.y);
-	ctx.lineTo(this.x+cardWidth/3, this.y);
-	ctx.lineTo(this.x, this.y-cardWidth/2);
-	ctx.fill();
-	ctx.stroke();
-	
-	ctx.beginPath();
-	ctx.moveTo(this.x-cardWidth/3, this.y-cardWidth/6);
-	ctx.lineTo(this.x-cardWidth/3, this.y+cardWidth/6);
-	ctx.lineTo(this.x-cardWidth/2, this.y);
-	ctx.fill();
-	ctx.stroke();
-	
-	ctx.beginPath();
-	ctx.moveTo(this.x+cardWidth/3, this.y-cardWidth/6);
-	ctx.lineTo(this.x+cardWidth/3, this.y+cardWidth/6);
-	ctx.lineTo(this.x+cardWidth/2, this.y);
-	ctx.fill();
-	ctx.stroke();
-}
-
-function drawEnemies() {
+function drawSlots() {
 	ctx.lineWidth = 3;
-	ctx.strokeStyle = 'red';
-	ctx.fillStyle = 'red';
-
-	var count = 0;
+	ctx.strokeStyle = 'white';
+	ctx.fillStyle = 'white';
 	
-	for(var i = 0; i < enemies.length; i++) {
-		if(enemies[i].isAlive) {
-			ctx.beginPath();
-			ctx.moveTo(Math.floor(enemies[i].x-enemies[i].width/2.5), Math.floor(enemies[i].y));
-			ctx.lineTo(Math.floor(enemies[i].x+enemies[i].width/2.5), Math.floor(enemies[i].y));
-			ctx.lineTo(Math.floor(enemies[i].x), Math.floor(enemies[i].y+enemies[i].width/2));
-			ctx.fill();
-			ctx.stroke();
-			count++;
-		}
+	for(var i = 0; i < NUM_SLOTS; i++) {
+		ctx.beginPath();
+		ctx.moveTo(Math.floor(enemies[i].x-enemies[i].width/2.5), Math.floor(enemies[i].y));
+		ctx.lineTo(Math.floor(enemies[i].x+enemies[i].width/2.5), Math.floor(enemies[i].y));
+		ctx.lineTo(Math.floor(enemies[i].x), Math.floor(enemies[i].y+enemies[i].width/2));
+		ctx.fill();
+		ctx.stroke();
 	}
-	
-	enemyCount = count;
 }
 
 function update() {	
-	getEnemyHeight();
 	
 	if(keyState[37] || keyState[65]) {  }	// Left on Keyboard
 	if(keyState[39] || keyState[68]) {  }	// Right on Keyboard
-		
-	if(card.x < 0 + card.width/3 + card.width/6) { card.x = 0 + card.width/3 + card.width/6; }
-	if(card.x > canvas.width - card.width/3 - card.width/6) { card.x = canvas.width - card.width/3 - card.width/6; }
 	
 	
 }
@@ -165,7 +120,7 @@ function initKeyEvents() {
 		    	  game = 1;
 		      }
 		      else if(game === 1) {
-		    	  if(isRunning && (enemyHeight < canvas.height*6/7)) { stop(); }
+		    	  if(isRunning && (slotHeight < canvas.height*6/7)) { stop(); }
 			      else { start(); }  
 		      }
 		      break;
@@ -203,11 +158,9 @@ function initValues() {
 	
 }
 
-function enemy(x, y) {
+function cardSlot(x, y) {
 		this.x = x;
 		this.y = y;
-		this.speed = 12;
 		this.width = canvas.width/20;
-		this.isFiring = false;
-		this.isAlive = true;
+		this.isTaken = false;
 }
