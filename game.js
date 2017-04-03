@@ -12,7 +12,7 @@ var SLOT_HEIGHT;
 var SLOT_BASE_X, SLOT_X;
 var SLOT_BASE_Y, SLOT_Y;
 var player;
-var MOVE_MODIFIER = 1;
+var MOVE_MODIFIER = 2;
 
 function init() {
 	ctx = document.getElementById("canvas").getContext('2d');
@@ -48,12 +48,19 @@ function draw() {
 	}
 }
 
-function update() {
-	if(keyState[37] || keyState[65]) { move('l'); }	// Left/a on Keyboard
-	if(keyState[39] || keyState[68]) { move('r'); }	// Right/d on Keyboard
-	if(keyState[38] || keyState[87]) { move('u'); }	// Up/w on Keyboard
-	if(keyState[40] || keyState[83]) { move('d'); }	// Down/s on Keyboard
-	
+function update() {	
+	if(keyState[37] || keyState[65]) {	// Left/a on Keyboard
+		move('l');
+	}
+	if(keyState[39] || keyState[68]) {	// Right/d on Keyboard
+		move('r');
+	}
+	if(keyState[38] || keyState[87]) {	// Up/w on Keyboard
+		move('u');
+	}
+	if(keyState[40] || keyState[83]) {	// Down/s on Keyboard
+		move('d');
+	}
 	
 }
 
@@ -164,6 +171,41 @@ function move(dir) {
 		player.y += MOVE_MODIFIER;
 		break;
 	}
+	
+	checkPos(dir);
+}
+
+function checkPos(curDir) {
+	if(isWithin() === true) {
+		switch(curDir) {
+		case 'l':
+			player.x += MOVE_MODIFIER;
+			break;
+		case 'r':
+			player.x -= MOVE_MODIFIER;
+			break;
+		case 'u':
+			player.y += MOVE_MODIFIER;
+			break;
+		case 'd':
+			player.y -= MOVE_MODIFIER;
+			break;
+		}
+	}
+	
+	if(player.x-player.radius < 0) { player.x = player.radius+1; }
+	if(player.x+player.radius > canvas.width) { player.x = canvas.width-(player.radius+1); }
+	if(player.y-player.radius < 0) { player.y = player.radius+1; }
+	if(player.y+player.radius > canvas.height) { player.y = canvas.height-(player.radius+1); }
+}
+
+function isWithin() {
+	for(var i = 0; i < NUM_SLOTS; i++) {
+		if((player.x+player.radius>slots[i].x) && (player.x-player.radius<(slots[i].x+SLOT_WIDTH)) && (player.y+player.radius>slots[i].y) && (player.y-player.radius<(slots[i].y+SLOT_HEIGHT))) {
+			return true;
+		}
+	}
+	return false;
 }
 
 function fillSlots() {
@@ -242,7 +284,7 @@ function initValues() {
 	projectile = {
 			x		: 0,
 			y		: 0,
-			
+			isActive: false,
 	}
 	
 	SLOT_WIDTH = canvas.width/11;
