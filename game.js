@@ -11,6 +11,8 @@ var SLOT_WIDTH;
 var SLOT_HEIGHT;
 var SLOT_BASE_X, SLOT_X;
 var SLOT_BASE_Y, SLOT_Y;
+var player;
+var MOVE_MODIFIER = 1;
 
 function init() {
 	ctx = document.getElementById("canvas").getContext('2d');
@@ -26,7 +28,8 @@ function init() {
 
 function draw() {
 	if(game === 0) {	// Initial screen
-		drawText("Enter/Esc to Pause and Unpause\n\nPress Enter to Begin", canvas.width*(20/56), canvas.height*(10/25));
+		clear();
+		drawText("Enter/Esc to Pause and Unpause\n\nPress Enter to Begin", canvas.width*(19/56), canvas.height*(11/25));
 		gID = window.requestAnimationFrame(draw);
 	}
 	else if(game === 1) {	// Game screen
@@ -46,14 +49,17 @@ function draw() {
 }
 
 function update() {
-	if(keyState[37] || keyState[65]) {  }	// Left on Keyboard
-	if(keyState[39] || keyState[68]) {  }	// Right on Keyboard
+	if(keyState[37] || keyState[65]) { move('l'); }	// Left/a on Keyboard
+	if(keyState[39] || keyState[68]) { move('r'); }	// Right/d on Keyboard
+	if(keyState[38] || keyState[87]) { move('u'); }	// Up/w on Keyboard
+	if(keyState[40] || keyState[83]) { move('d'); }	// Down/s on Keyboard
 	
 	
 }
 
 function render() {	
 	drawSlots();
+	drawPlayer();
 }
 
 function stop() {
@@ -112,8 +118,13 @@ function initKeyEvents() {
 		    	  game = 1;
 		      }
 		      else if(game === 1) {
-		    	  if(isRunning) { stop(); }	
-			      else { start(); }  
+		    	  if(isRunning) {
+		    		  drawText("PAUSED", 10, 35);
+		    		  stop();
+		    	  }	
+			      else {
+			    	  start();
+			      }
 		      }
 		      break;
 		    default:
@@ -138,6 +149,23 @@ function initKeyEvents() {
 		}, true);
 }
 
+function move(dir) {
+	switch(dir) {
+	case 'l':
+		player.x -= MOVE_MODIFIER;
+		break;
+	case 'r':
+		player.x += MOVE_MODIFIER;
+		break;
+	case 'u':
+		player.y -= MOVE_MODIFIER;
+		break;
+	case 'd':
+		player.y += MOVE_MODIFIER;
+		break;
+	}
+}
+
 function fillSlots() {
 	var x = 0, y = 0, i = 0, k = 1;
 	
@@ -159,9 +187,7 @@ function fillSlots() {
 }
 
 function drawSlots() {
-	ctx.lineWidth = 3;
-	ctx.strokeStyle = 'white';
-	ctx.fillStyle = 'white';
+	ctx.lineWidth = 4;
 	
 	var i, j;
 	
@@ -192,12 +218,32 @@ function drawSlots() {
 	}
 }
 
+function drawPlayer() {
+	ctx.lineWidth = 3;
+	ctx.strokeStyle = 'yellow';
+	ctx.fillStyle = 'black';
+	
+			
+	ctx.beginPath();
+	ctx.arc(player.x, player.y, player.radius, 0, 2 * Math.PI, false);
+	ctx.stroke();
+	ctx.fill();
+}
+
 function initValues() {
-	var player = {
-			x,
-			y,
-			dir,
+	player = {
+			x		: canvas.width/2,
+			y		: canvas.height/2,
+			radius	: 16,
+			dir		: 0,
+			isAlive : true,
 	};
+	
+	projectile = {
+			x		: 0,
+			y		: 0,
+			
+	}
 	
 	SLOT_WIDTH = canvas.width/11;
 	SLOT_HEIGHT = canvas.height/9;
