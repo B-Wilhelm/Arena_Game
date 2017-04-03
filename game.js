@@ -12,7 +12,11 @@ var SLOT_HEIGHT;
 var SLOT_BASE_X, SLOT_X;
 var SLOT_BASE_Y, SLOT_Y;
 var player;
-var MOVE_MODIFIER = 2;
+var MOVE_MODIFIER = 3;
+var PROJECTILE_SPEED = 8;
+var PROJECTILE_RADIUS = 3;
+var mousePosX = 0;
+var mousePosY = 0;
 
 function init() {
 	ctx = document.getElementById("canvas").getContext('2d');
@@ -62,11 +66,13 @@ function update() {
 		move('d');
 	}
 	
+	moveProjectile();
 }
 
 function render() {	
 	drawSlots();
 	drawPlayer();
+	drawProjectile();
 }
 
 function stop() {
@@ -100,7 +106,21 @@ function fillTextMultiLine(ctx, text, x, y) {
 	  }
 	}
 
-function initKeyEvents() {	
+function initKeyEvents() {
+	document.addEventListener('click', function(e) {
+		projectile.x = player.x;
+		projectile.y = player.y;
+		projectile.targetX = e.pageX;
+		projectile.targetY = e.pageY;
+		projectile.target
+		
+		projectile.isActive = true;
+	    var direction = (Math.atan2(projectile.targetY - player.y, projectile.targetX - player.x) * 180 / Math.PI);
+
+	    projectile.compX = Math.cos(direction * Math.PI/180) * PROJECTILE_SPEED;
+	    projectile.compY = Math.sin(direction * Math.PI/180) * PROJECTILE_SPEED;
+	});
+	
 	window.addEventListener('keydown',function(e){
 	    keyState[e.keyCode || e.which] = true;
 	},true);    
@@ -128,7 +148,7 @@ function initKeyEvents() {
 		    	  if(isRunning) {
 		    		  drawText("PAUSED", 10, 35);
 		    		  stop();
-		    	  }	
+		    	  }
 			      else {
 			    	  start();
 			      }
@@ -154,6 +174,18 @@ function initKeyEvents() {
 		  }
 		  event.preventDefault();	// Cancel the default action to avoid it being handled twice
 		}, true);
+}
+
+function moveProjectile() {
+	if(projectile.isActive) {
+		if(projectile.x < 0 || projectile.x > canvas.width || projectile.y < 0 || projectile.y > canvas.height) {
+			projectile.isActive = false;
+		}
+		else {
+			projectile.x += projectile.compX;
+			projectile.y += projectile.compY;
+		}
+	}
 }
 
 function move(dir) {
@@ -215,7 +247,7 @@ function fillSlots() {
 	y = SLOT_BASE_Y;
 	
 	for(i = 0; i < NUM_SLOTS; i++, k++) {
-		slots[i] = new cardSlot(x, y);
+		slots[i] = new pillar(x, y);
 		
 		if(k >= (NUM_SLOTS/4)) {
 			x = SLOT_BASE_X;
@@ -272,6 +304,20 @@ function drawPlayer() {
 	ctx.fill();
 }
 
+function drawProjectile() {
+	if(projectile.isActive) {
+		ctx.lineWidth = 3;
+		ctx.strokeStyle = 'white';
+		ctx.fillStyle = 'white';
+		
+				
+		ctx.beginPath();
+		ctx.arc(projectile.x, projectile.y, PROJECTILE_RADIUS, 0, 2 * Math.PI, false);
+		ctx.stroke();
+		ctx.fill();
+	}
+}
+
 function initValues() {
 	player = {
 			x		: canvas.width/2,
@@ -282,9 +328,13 @@ function initValues() {
 	};
 	
 	projectile = {
-			x		: 0,
-			y		: 0,
-			isActive: false,
+			x			: 0,
+			y			: 0,
+			targetX		: 0,
+			targetY		: 0,
+			compX		: 0,
+			compY		: 0,
+			isActive	: false,
 	}
 	
 	SLOT_WIDTH = canvas.width/11;
@@ -296,7 +346,7 @@ function initValues() {
 	
 }
 
-function cardSlot(x, y) {
+function pillar(x, y) {
 		this.x = x;
 		this.y = y;
 		this.isTaken = false;
