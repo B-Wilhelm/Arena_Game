@@ -11,12 +11,16 @@ var SLOT_WIDTH;
 var SLOT_HEIGHT;
 var SLOT_BASE_X, SLOT_X;
 var SLOT_BASE_Y, SLOT_Y;
-var player;
 var MOVE_MODIFIER = 3;
-var PROJECTILE_SPEED = 8;
+var PROJECTILE_SPEED = 3;
 var PROJECTILE_RADIUS = 3;
 var mousePosX = 0;
 var mousePosY = 0;
+var timer = 0.00;
+var NUM_PLAYERS = 2;
+var orb = new Array(NUM_PLAYERS);
+var players = new Array(NUM_PLAYERS);
+var PLAYER_RADIUS = 16;
 
 function init() {
 	ctx = document.getElementById("canvas").getContext('2d');
@@ -33,7 +37,7 @@ function init() {
 function draw() {
 	if(game === 0) {	// Initial screen
 		clear();
-		drawText("Enter/Esc to Pause and Unpause\n\nPress Enter to Begin", canvas.width*(19/56), canvas.height*(11/25));
+		drawText("Enter/Esc to Pause and Unpause\n\nWASD to move P1\n\nArrow Keys to move P2\n\nP1's Projectile uses IJKL\n\nP2's Projectile uses Numpad8456\n\nPress Enter to Begin", canvas.width*(19/56), canvas.height*(8/25));
 		gID = window.requestAnimationFrame(draw);
 	}
 	else if(game === 1) {	// Game screen
@@ -42,37 +46,83 @@ function draw() {
 		render();
 		gID = window.requestAnimationFrame(draw);
 	}
-	else if(game === 2) {	// Failure screen
+	else if(game === 2) {	// P2 Wins
 		clear();
-		drawText("YOU\nLOSE", canvas.width*(5/11), canvas.height/2);
+		drawText("PLAYER 2\nWINS", canvas.width*(5/11), canvas.height/2);
 	}
-	else if(game === 3) {	// Success screen
+	else if(game === 3) {	// P1 Wins
 		clear();
-		drawText("YOU\nWIN", canvas.width*(5/11), canvas.height/2);
+		drawText("PLAYER 1\nWINS", canvas.width*(5/11), canvas.height/2);
 	}
 }
 
 function update() {	
-	if(keyState[37] || keyState[65]) {	// Left/a on Keyboard
-		move('l');
+	if(keyState[37]) {	// Left on Keyboard
+		move('l', 1);
 	}
-	if(keyState[39] || keyState[68]) {	// Right/d on Keyboard
-		move('r');
+	if(keyState[39]) {	// Right on Keyboard
+		move('r', 1);
 	}
-	if(keyState[38] || keyState[87]) {	// Up/w on Keyboard
-		move('u');
+	if(keyState[38]) {	// Up on Keyboard
+		move('u', 1);
 	}
-	if(keyState[40] || keyState[83]) {	// Down/s on Keyboard
-		move('d');
+	if(keyState[40]) {	// Down on Keyboard
+		move('d', 1);
 	}
 	
-	moveProjectile();
+	if(keyState[65]) {	// a on Keyboard
+		move('l', 0);
+	}
+	if(keyState[68]) {	// d on Keyboard
+		move('r', 0);
+	}
+	if(keyState[87]) {	// w on Keyboard
+		move('u', 0);
+	}
+	if(keyState[83]) {	// s on Keyboard
+		move('d', 0);
+	}
+	
+	if(keyState[74]) {	// j on Keyboard
+		moveProjectile(0, 'l');
+	}
+	if(keyState[76]) {	// l on Keyboard
+		moveProjectile(0, 'r');
+	}
+	if(keyState[73]) {	// i on Keyboard
+		moveProjectile(0, 'u');
+	}
+	if(keyState[75]) {	// k on Keyboard
+		moveProjectile(0, 'd');
+	}
+	
+	if(keyState[100]) {	// 4 on Numpad
+		moveProjectile(1, 'l');
+	}
+	if(keyState[102]) {	// 6 on Numpad
+		moveProjectile(1, 'r');
+	}
+	if(keyState[104]) {	// 8 on Numpad
+		moveProjectile(1, 'u');
+	}
+	if(keyState[101]) {	// 5 on Numpad
+		moveProjectile(1, 'd');
+	}
+	
+	if(checkVictory(0)) {
+		game = 2;
+	}
+	else if(checkVictory(1)) {
+		game = 3;
+	}
 }
 
 function render() {	
 	drawSlots();
-	drawPlayer();
-	drawProjectile();
+	for(var pNum = 0; pNum < NUM_PLAYERS; pNum++) {
+		drawPlayer(pNum);
+		drawProjectile(pNum);
+	}
 }
 
 function stop() {
@@ -107,19 +157,18 @@ function fillTextMultiLine(ctx, text, x, y) {
 	}
 
 function initKeyEvents() {
-	document.addEventListener('click', function(e) {
-		projectile.x = player.x;
-		projectile.y = player.y;
-		projectile.targetX = e.pageX;
-		projectile.targetY = e.pageY;
-		projectile.target
-		
-		projectile.isActive = true;
-	    var direction = (Math.atan2(projectile.targetY - player.y, projectile.targetX - player.x) * 180 / Math.PI);
-
-	    projectile.compX = Math.cos(direction * Math.PI/180) * PROJECTILE_SPEED;
-	    projectile.compY = Math.sin(direction * Math.PI/180) * PROJECTILE_SPEED;
-	});
+//	document.addEventListener('click', function(e) {
+//		for(var i = 0; i < NUM_PLAYERS; i++) {
+//			if(orb[i].isActive) { var direction = (Math.atan2(e.pageY - orb[i].y, e.pageX - orb[i].x) * 180 / Math.PI); }
+//			else { var direction = (Math.atan2(e.pageY - orb[i].y, e.pageX - orb[i].x) * 180 / Math.PI); }
+//			
+//			orb[i].targetX = e.pageX;
+//			orb[i].targetY = e.pageY;
+//		    orb[i].compX = Math.cos(direction * Math.PI/180) * PROJECTILE_SPEED;
+//		    orb[i].compY = Math.sin(direction * Math.PI/180) * PROJECTILE_SPEED;
+//		    orb[i].isActive = true;
+//		}
+//	});
 	
 	window.addEventListener('keydown',function(e){
 	    keyState[e.keyCode || e.which] = true;
@@ -176,64 +225,98 @@ function initKeyEvents() {
 		}, true);
 }
 
-function moveProjectile() {
-	if(projectile.isActive) {
-		if(projectile.x < 0 || projectile.x > canvas.width || projectile.y < 0 || projectile.y > canvas.height) {
-			projectile.isActive = false;
+function moveProjectile(pNum, dir) {
+	if(orb[pNum].isActive) {
+		if(orb[pNum].x < 0 || orb[pNum].x > canvas.width || orb[pNum].y < 0 || orb[pNum].y > canvas.height) {
+			orb[pNum].isActive = false;
+			orb[pNum].x = players[pNum].x;
+			orb[pNum].y = players[pNum].y;
 		}
 		else {
-			projectile.x += projectile.compX;
-			projectile.y += projectile.compY;
+//			orb[pNum].x += orb[pNum].compX;
+//			orb[pNum].y += orb[pNum].compY;
+			
+			orb[pNum].isActive = true;
+			
+			switch(dir) {
+			case 'l':
+				orb[pNum].x -= PROJECTILE_SPEED;
+				break;
+			case 'r':
+				orb[pNum].x += PROJECTILE_SPEED;
+				break;
+			case 'u':
+				orb[pNum].y -= PROJECTILE_SPEED;
+				break;
+			case 'd':
+				orb[pNum].y += PROJECTILE_SPEED;
+				break;
+			}
 		}
+	}
+	else {
+		orb[pNum].isActive = true;
+		
+		orb[pNum].x = players[pNum].x;
+		orb[pNum].y = players[pNum].y;
 	}
 }
 
-function move(dir) {
+function move(dir, pNum) {
 	switch(dir) {
 	case 'l':
-		player.x -= MOVE_MODIFIER;
+		players[pNum].x -= MOVE_MODIFIER;
 		break;
 	case 'r':
-		player.x += MOVE_MODIFIER;
+		players[pNum].x += MOVE_MODIFIER;
 		break;
 	case 'u':
-		player.y -= MOVE_MODIFIER;
+		players[pNum].y -= MOVE_MODIFIER;
 		break;
 	case 'd':
-		player.y += MOVE_MODIFIER;
+		players[pNum].y += MOVE_MODIFIER;
 		break;
 	}
 	
-	checkPos(dir);
+	checkPos(dir, pNum);
 }
 
-function checkPos(curDir) {
-	if(isWithin() === true) {
+function checkPos(curDir, pNum) {
+	if(isWithin(pNum) === true) {
 		switch(curDir) {
 		case 'l':
-			player.x += MOVE_MODIFIER;
+			players[pNum].x += MOVE_MODIFIER;
 			break;
 		case 'r':
-			player.x -= MOVE_MODIFIER;
+			players[pNum].x -= MOVE_MODIFIER;
 			break;
 		case 'u':
-			player.y += MOVE_MODIFIER;
+			players[pNum].y += MOVE_MODIFIER;
 			break;
 		case 'd':
-			player.y -= MOVE_MODIFIER;
+			players[pNum].y -= MOVE_MODIFIER;
 			break;
 		}
 	}
 	
-	if(player.x-player.radius < 0) { player.x = player.radius+1; }
-	if(player.x+player.radius > canvas.width) { player.x = canvas.width-(player.radius+1); }
-	if(player.y-player.radius < 0) { player.y = player.radius+1; }
-	if(player.y+player.radius > canvas.height) { player.y = canvas.height-(player.radius+1); }
+	if(players[pNum].x-PLAYER_RADIUS < 0) { players[pNum].x = PLAYER_RADIUS+1; }
+	if(players[pNum].x+PLAYER_RADIUS > canvas.width) { players[pNum].x = canvas.width-(PLAYER_RADIUS+1); }
+	if(players[pNum].y-PLAYER_RADIUS < 0) { players[pNum].y = PLAYER_RADIUS+1; }
+	if(players[pNum].y+PLAYER_RADIUS > canvas.height) { players[pNum].y = canvas.height-(PLAYER_RADIUS+1); }
 }
 
-function isWithin() {
+function isWithin(pNum) {
 	for(var i = 0; i < NUM_SLOTS; i++) {
-		if((player.x+player.radius>slots[i].x) && (player.x-player.radius<(slots[i].x+SLOT_WIDTH)) && (player.y+player.radius>slots[i].y) && (player.y-player.radius<(slots[i].y+SLOT_HEIGHT))) {
+		if((players[pNum].x+PLAYER_RADIUS>slots[i].x) && (players[pNum].x-PLAYER_RADIUS<(slots[i].x+SLOT_WIDTH)) && (players[pNum].y+PLAYER_RADIUS>slots[i].y) && (players[pNum].y-PLAYER_RADIUS<(slots[i].y+SLOT_HEIGHT))) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function checkVictory(pNum) {
+	for(var i = 0; i < NUM_SLOTS; i++) {
+		if((players[pNum].x+PLAYER_RADIUS>orb[Math.abs(pNum-1)].x) && (players[pNum].x-PLAYER_RADIUS<(orb[Math.abs(pNum-1)].x+PROJECTILE_RADIUS)) && (players[pNum].y+PLAYER_RADIUS>orb[Math.abs(pNum-1)].y) && (players[pNum].y-PLAYER_RADIUS<(orb[Math.abs(pNum-1)].y+PROJECTILE_RADIUS))) {
 			return true;
 		}
 	}
@@ -271,12 +354,12 @@ function drawSlots() {
 		ctx.fillStyle = 'black';
 		
 		if(i >= NUM_SLOTS/4) {
-			ctx.strokeStyle = 'blue';
+			ctx.strokeStyle = 'lightblue';
 			ctx.fillStyle = 'black'
 		}
 		
 		if(i >= NUM_SLOTS/2) {
-			ctx.strokeStyle = 'blue';
+			ctx.strokeStyle = 'lightblue';
 			ctx.fillStyle = 'black'
 		}
 		
@@ -288,55 +371,35 @@ function drawSlots() {
 		ctx.beginPath();
 		ctx.rect(slots[i].x, slots[i].y, SLOT_WIDTH, SLOT_HEIGHT);
 		ctx.stroke();
-		ctx.fill();
+//		ctx.fill();
 	}
 }
 
-function drawPlayer() {
+function drawPlayer(pNum) {
 	ctx.lineWidth = 3;
 	ctx.strokeStyle = 'yellow';
 	ctx.fillStyle = 'black';
 	
-			
 	ctx.beginPath();
-	ctx.arc(player.x, player.y, player.radius, 0, 2 * Math.PI, false);
+	ctx.arc(players[pNum].x, players[pNum].y, PLAYER_RADIUS, 0, 2 * Math.PI, false);
 	ctx.stroke();
 	ctx.fill();
 }
 
-function drawProjectile() {
-	if(projectile.isActive) {
+function drawProjectile(pNum) {
+	if(orb[pNum].isActive) {
 		ctx.lineWidth = 3;
 		ctx.strokeStyle = 'white';
 		ctx.fillStyle = 'white';
 		
-				
 		ctx.beginPath();
-		ctx.arc(projectile.x, projectile.y, PROJECTILE_RADIUS, 0, 2 * Math.PI, false);
+		ctx.arc(orb[pNum].x, orb[pNum].y, PROJECTILE_RADIUS, 0, 2 * Math.PI, false);
 		ctx.stroke();
 		ctx.fill();
 	}
 }
 
 function initValues() {
-	player = {
-			x		: canvas.width/2,
-			y		: canvas.height/2,
-			radius	: 16,
-			dir		: 0,
-			isAlive : true,
-	};
-	
-	projectile = {
-			x			: 0,
-			y			: 0,
-			targetX		: 0,
-			targetY		: 0,
-			compX		: 0,
-			compY		: 0,
-			isActive	: false,
-	}
-	
 	SLOT_WIDTH = canvas.width/11;
 	SLOT_HEIGHT = canvas.height/9;
 	SLOT_BASE_X = canvas.width/11;
@@ -344,10 +407,35 @@ function initValues() {
 	SLOT_BASE_Y = canvas.height/9;
 	SLOT_Y = canvas.height/9;
 	
+	for(var i = 0; i < NUM_PLAYERS; i++) {
+		players[i] = new player();
+		orb[i] = new projectile();
+	}
+	
+	players[0].x = canvas.width/11;
+	players[0].y = canvas.height/2;
+	players[1].x = 10*canvas.width/11;
+	players[1].y = canvas.height/2;
 }
 
 function pillar(x, y) {
 		this.x = x;
 		this.y = y;
 		this.isTaken = false;
+}
+
+function projectile() {
+		this.x = 0;
+		this.y = 0;
+		this.targetX = 0;
+		this.targetY = 0;
+		this.compX = 0;
+		this.compY = 0;
+		this.isActive = false;
+}
+
+function player() {
+		x = 0;
+		y = 0;
+		isAlive = true;
 }
