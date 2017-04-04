@@ -37,7 +37,7 @@ function init() {
 function draw() {
 	if(game === 0) {	// Initial screen
 		clear();
-		drawText("Enter/Esc to Pause and Unpause\n\nWASD to move P1\n\nArrow Keys to move P2\n\nP1's Projectile uses IJKL\n\nP2's Projectile uses Numpad8456\n\nPress Enter to Begin", canvas.width*(19/56), canvas.height*(8/25));
+		drawText("Goal is to hit opponent with your projectile\nwhile evading your opponent's projectile.\n\n\nEnter/Esc to Pause and Unpause\n\nWASD to move P1\nArrow Keys to move P2\n\nP1's Projectile uses IJKL\nP2's Projectile uses Numpad8456\n\n\nPress Enter to Begin", canvas.width*(16/56), canvas.height*(6/25));
 		gID = window.requestAnimationFrame(draw);
 	}
 	else if(game === 1) {	// Game screen
