@@ -368,7 +368,6 @@ function drawSlots() {
 		ctx.beginPath();
 		ctx.rect(slots[i].x, slots[i].y, SLOT_WIDTH, SLOT_HEIGHT);
 		ctx.stroke();
-//		ctx.fill();
 	}
 }
 
