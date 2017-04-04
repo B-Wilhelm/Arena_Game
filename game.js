@@ -143,7 +143,7 @@ function clear() {
 
 function drawText(str, x, y) {
 	ctx.font="32px Verdana";
-	ctx.fillStyle='white';
+	ctx.fillStyle='yellow';
 	fillTextMultiLine(ctx, str, x, y);
 }
 
@@ -215,9 +215,6 @@ function initKeyEvents() {
 		  }
 
 		  switch (event.key) {
-		    case " ":	// If spacebar is pressed...
-		      
-		      break;
 		    default:
 		      return;	// Quit when this doesn't handle the key event.
 		  }
